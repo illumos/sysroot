@@ -1,0 +1,279 @@
+$mapfile_version 2
+
+$if VER_7_0_0
+$add VER_4_8_0
+$endif
+
+$if VER_4_8_0
+$add VER_4_7_0
+$endif
+
+$if VER_4_7_0
+$add VER_4_5_0
+$endif
+
+$if VER_4_5_0
+$add VER_4_3_0
+$endif
+
+$if VER_4_3_0
+$add VER_4_2_0
+$endif
+
+$if VER_4_2_0
+$add VER_4_0_0
+$endif
+
+$if VER_4_0_0
+$add VER_3_4_4
+$endif
+
+$if VER_3_4_4
+$add VER_3_4_2
+$endif
+
+$if VER_3_4_2
+$add VER_3_4_0
+$endif
+
+$if VER_3_4_0
+$add VER_3_3_1
+$endif
+
+$if VER_3_3_1
+$add VER_3_3_0
+$endif
+
+
+SYMBOL_VERSION GCC_3.0 {
+    global:
+	__absvdi2;
+	__absvsi2;
+	__addvdi3;
+	__addvsi3;
+	__ashlti3;
+	__ashrti3;
+	__clear_cache;
+	__cmpti2;
+	__deregister_frame;
+	__deregister_frame_info;
+	__deregister_frame_info_bases;
+	__divti3;
+	__ffsdi2;
+	__ffsti2;
+	__fixdfti;
+	__fixsfti;
+	__fixunsdfdi;
+	__fixunsdfti;
+	__fixunssfdi;
+	__fixunssfti;
+	__fixunsxfdi;
+	__fixunsxfti;
+	__fixxfti;
+	__floattidf;
+	__floattisf;
+	__floattixf;
+	__lshrti3;
+	__modti3;
+	__multi3;
+	__mulvdi3;
+	__mulvsi3;
+	__negti2;
+	__negvdi2;
+	__negvsi2;
+	__register_frame;
+	__register_frame_info;
+	__register_frame_info_bases;
+	__register_frame_info_table;
+	__register_frame_info_table_bases;
+	__register_frame_table;
+	__subvdi3;
+	__subvsi3;
+	__ucmpti2;
+	__udivmodti4;
+	__udivti3;
+	__umodti3;
+	_Unwind_DeleteException;
+	_Unwind_Find_FDE;
+	_Unwind_ForcedUnwind;
+	_Unwind_GetDataRelBase;
+	_Unwind_GetGR;
+	_Unwind_GetIP;
+	_Unwind_GetLanguageSpecificData;
+	_Unwind_GetRegionStart;
+	_Unwind_GetTextRelBase;
+	_Unwind_RaiseException;
+	_Unwind_Resume;
+	_Unwind_SetGR;
+	_Unwind_SetIP;
+};
+
+$if VER_3_3_0
+
+SYMBOL_VERSION GCC_3.3 {
+    global:
+	_Unwind_Backtrace;
+	_Unwind_FindEnclosingFunction;
+	_Unwind_GetCFA;
+	_Unwind_Resume_or_Rethrow;
+} GCC_3.0;
+
+$endif
+
+$if VER_3_3_1
+
+SYMBOL_VERSION GCC_3.3.1 {
+    global:
+	__gcc_personality_v0;
+} GCC_3.3;
+
+$endif
+
+$if VER_3_4_0
+
+SYMBOL_VERSION GCC_3.4 {
+    global:
+	__clzdi2;
+	__clzti2;
+	__ctzdi2;
+	__ctzti2;
+	__paritydi2;
+	__parityti2;
+	__popcountdi2;
+	__popcountti2;
+} GCC_3.3.1;
+
+$endif
+
+$if VER_3_4_2
+
+SYMBOL_VERSION GCC_3.4.2 {
+    global:
+	__enable_execute_stack;
+} GCC_3.4;
+
+$endif
+
+$if VER_3_4_4
+
+SYMBOL_VERSION GCC_3.4.4 {
+    global:
+	__absvti2;
+	__addvti3;
+	__mulvti3;
+	__negvti2;
+	__subvti3;
+} GCC_3.4.2;
+
+$endif
+
+$if VER_4_0_0
+
+SYMBOL_VERSION GCC_4.0.0 {
+    global:
+	__divdc3;
+	__divsc3;
+	__divxc3;
+	__muldc3;
+	__mulsc3;
+	__mulxc3;
+	__powidf2;
+	__powisf2;
+	__powixf2;
+} GCC_3.4.4;
+
+$endif
+
+$if VER_4_2_0
+
+SYMBOL_VERSION GCC_4.2.0 {
+    global:
+	__floatuntidf;
+	__floatuntisf;
+	__floatuntixf;
+	_Unwind_GetIPInfo;
+} GCC_4.0.0;
+
+$endif
+
+$if VER_4_3_0
+
+SYMBOL_VERSION GCC_4.3.0 {
+    global:
+	__bswapdi2;
+	__bswapsi2;
+	__emutls_get_address;
+	__emutls_register_common;
+} GCC_4.2.0;
+
+$endif
+
+$if VER_4_5_0
+
+SYMBOL_VERSION GCC_4.5.0 {
+    global:
+	__addtf3;
+	__divtc3;
+	__divtf3;
+	__eqtf2;
+	__extenddftf2;
+	__extendsftf2;
+	__extendxftf2;
+	__fixtfdi;
+	__fixtfsi;
+	__fixtfti;
+	__fixunstfdi;
+	__fixunstfsi;
+	__fixunstfti;
+	__floatditf;
+	__floatsitf;
+	__floattitf;
+	__floatunditf;
+	__floatunsitf;
+	__floatuntitf;
+	__getf2;
+	__gttf2;
+	__letf2;
+	__lttf2;
+	__multc3;
+	__multf3;
+	__negtf2;
+	__netf2;
+	__powitf2;
+	__subtf3;
+	__trunctfdf2;
+	__trunctfsf2;
+	__trunctfxf2;
+	__unordtf2;
+} GCC_4.3.0;
+
+$endif
+
+$if VER_4_7_0
+
+SYMBOL_VERSION GCC_4.7.0 {
+    global:
+	__clrsbdi2;
+	__clrsbti2;
+} GCC_4.5.0;
+
+$endif
+
+$if VER_4_8_0
+
+SYMBOL_VERSION GCC_4.8.0 {
+    global:
+	__cpu_model;
+	__cpu_indicator_init;
+} GCC_4.7.0;
+
+$endif
+
+$if VER_7_0_0
+
+SYMBOL_VERSION GCC_7.0.0 {
+    global:
+	__divmodti4;
+} GCC_4.8.0;
+
+$endif
