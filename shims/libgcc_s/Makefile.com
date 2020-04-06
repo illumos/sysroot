@@ -10,7 +10,8 @@ ifneq ($(shell echo $(VERSION) | grep '[3-7]_[0-9]_[0-9]'), $(VERSION))
     $(error "Version $(VERSION) invalid (expecting X_Y_X)")
 endif
 
-CFLAGS = -Wno-builtin-declaration-mismatch -D$(VERSTRING)
+CC = gcc
+CFLAGS = -fno-builtin -w -D$(VERSTRING)
 LDFLAGS = -G -s -h libgcc_s.so.1
 
 COMMON = ../common

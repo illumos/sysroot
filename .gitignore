@@ -1,3 +1,4 @@
-output/
-proto/
-make_stamps/
+/output/
+/proto/
+/make_stamps/
+/mf2tar/target/
