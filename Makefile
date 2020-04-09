@@ -1,88 +1,86 @@
 
 MACH64 =		amd64
 
-PROTO =			proto
-
 OUTPUT =		output
 TARBASE =		sysroot-illumos-$(MACH64)-
-
-MAKE_STAMPS_DIR ?=	make_stamps
-
-MAKE_STAMP_REMOVE =	mkdir -p $(@D); rm -f $(@)
-MAKE_STAMP_CREATE =	mkdir -p $(@D); touch $(@)
-
-STAMP_ILLUMOS =		$(MAKE_STAMPS_DIR)/illumos
-STAMP_LIBLINKS =	$(MAKE_STAMPS_DIR)/liblinks
+TARFILE =		$(OUTPUT)/$(TARBASE)$(shell date +%Y%m%d-%H%M%S).tar
 
 RSYNC =			rsync
 GNUTAR =		gtar
-LIBLINKS =		$(PWD)/scripts/liblinks.sh
 
-PROTO_USR_LIB =		$(PROTO)/usr/lib
-PROTO_USR_LIB64 =	$(PROTO)/usr/lib/$(MACH64)
+USRLIB =		usr/lib
+USRLIB64 =		usr/lib/$(MACH64)
 
 SHIMS =			libssp.so.0.0.0 \
 			libgcc_s.so.1
 
-PROTO_SHIMS =		$(addprefix $(PROTO_USR_LIB)/,$(SHIMS)) \
-			$(addprefix $(PROTO_USR_LIB64)/,$(SHIMS))
+MF2TAR =		$(PWD)/mf2tar/target/release/mf2tar
 
+INCLUDE_PACKAGES =	system/header \
+			system/library \
+			system/library/c-runtime
+
+EXCLUDE_DIRS =		usr/share \
+			etc \
+			var \
+			usr/bin \
+			usr/sbin \
+			usr/ccs \
+			sbin \
+			bin
+
+LIBGCC_32 =		shims/libgcc_s/i386/libgcc_s.so.1
+LIBGCC_64 =		shims/libgcc_s/$(MACH64)/libgcc_s.so.1
+LIBSSP_32 =		shims/libssp/i386/libssp.so.0.0.0
+LIBSSP_64 =		shims/libssp/$(MACH64)/libssp.so.0.0.0
+
+SHIM_TARGETS  =		$(LIBGCC_32) $(LIBGCC_64) $(LIBSSP_32) $(LIBSSP_64)
 
 .PHONY: all
 all: archive
 
 .PHONY: shims
-shims: $(PROTO_SHIMS) $(STAMP_LIBLINKS)
+shims: $(SHIM_TARGETS)
 
-$(STAMP_ILLUMOS): | $(PROTO)
-	$(MAKE_STAMP_REMOVE)
-	@if [[ -z "$(ILLUMOS_PROTO)" || \
-	    ! -d "$(ILLUMOS_PROTO)/usr/lib" ]]; then \
-		printf 'ERROR: specify valid ILLUMOS_PROTO location\n' >&2; \
-		exit 1; \
-	fi
-	$(RSYNC) -a $(ILLUMOS_PROTO)/usr/ "$(PROTO)/usr/"
-	$(RSYNC) -a $(ILLUMOS_PROTO)/lib/ "$(PROTO)/lib/"
-	$(MAKE_STAMP_CREATE)
-
-$(STAMP_LIBLINKS): $(LIBLINKS) | $(PROTO)
-	$(MAKE_STAMP_REMOVE)
-	$(LIBLINKS) $(PROTO) libssp.so.0.0.0 libssp.so.0 libssp.so
-	$(LIBLINKS) $(PROTO) libgcc_s.so.1 libgcc_s.so
-	$(MAKE_STAMP_CREATE)
-
-$(PROTO_USR_LIB)/libgcc_s.so.1: | $(PROTO_USR_LIB)
+$(LIBGCC_32) $(LIBGCC_64):
 	$(MAKE) -C shims/libgcc_s
-	rm -f $@
-	cp shims/libgcc_s/i386/$(@F) $@
 
-$(PROTO_USR_LIB64)/libgcc_s.so.1: | $(PROTO_USR_LIB64)
-	$(MAKE) -C shims/libgcc_s
-	rm -f $@
-	cp shims/libgcc_s/$(MACH64)/$(@F) $@
-
-$(PROTO_USR_LIB)/libssp.so.0.0.0: | $(PROTO_USR_LIB)
+$(LIBSSP_32) $(LIBSSP_64):
 	$(MAKE) -C shims/libssp
-	rm -f $@
-	cp shims/libssp/i386/$(@F) $@
 
-$(PROTO_USR_LIB64)/libssp.so.0.0.0: | $(PROTO_USR_LIB64)
-	$(MAKE) -C shims/libssp
-	rm -f $@
-	cp shims/libssp/$(MACH64)/$(@F) $@
+.PHONY: $(MF2TAR)
+$(MF2TAR):
+	cd mf2tar && cargo build --release
 
-$(PROTO) $(OUTPUT) $(PROTO_USR_LIB) $(PROTO_USR_LIB64):
+$(OUTPUT):
 	mkdir -p $@
 
 .PHONY: archive
-archive: $(STAMP_ILLUMOS) $(STAMP_LIBLINKS) $(PROTO_SHIMS) | $(OUTPUT)
-	gtar -cz --directory=$(PROTO) --owner=0 --group=0 \
-	    --file=$(OUTPUT)/$(TARBASE)$(shell date +%Y%m%d-%H%M%S).tar.gz \
-	    usr lib
-
-.PHONY: stamp-%
-stamp-%: $(MAKE_STAMPS_DIR)/%
-	@:
+archive: $(SHIM_TARGETS) | $(OUTPUT) $(MF2TAR)
+	@if [[ -z "$(ILLUMOS_PKGREPO)" || \
+		! -f "$(ILLUMOS_PKGREPO)/cfg_cache" ]]; then \
+		printf 'ERROR: specify valid ILLUMOS_PKGREPO location\n' >&2; \
+		exit 1; \
+	fi
+	$(MF2TAR) \
+	    --repository $(ILLUMOS_PKGREPO) \
+	    $(addprefix -P ,$(INCLUDE_PACKAGES)) \
+	    $(addprefix -E ,$(EXCLUDE_DIRS)) \
+	    \
+	    --file $(USRLIB)/libgcc_s.so.1=$(LIBGCC_32) \
+	    --file $(USRLIB64)/libgcc_s.so.1=$(LIBGCC_64) \
+	    --link $(USRLIB)/libgcc_s.so=libgcc_s.so.1 \
+	    --link $(USRLIB64)/libgcc_s.so=libgcc_s.so.1 \
+	    \
+	    --file $(USRLIB)/libssp.so.0.0.0=$(LIBSSP_32) \
+	    --file $(USRLIB64)/libssp.so.0.0.0=$(LIBSSP_64) \
+	    --link $(USRLIB)/libssp.so.0=libssp.so.0.0.0 \
+	    --link $(USRLIB)/libssp.so=libssp.so.0.0.0 \
+	    --link $(USRLIB64)/libssp.so.0=libssp.so.0.0.0 \
+	    --link $(USRLIB64)/libssp.so=libssp.so.0.0.0 \
+	    \
+	    $(OUTPUT)/$(TARBASE)$(shell date +%Y%m%d-%H%M%S).tar
+	gzip < $(TARFILE) > $(TARFILE).gz
 
 .PHONY: clean
 clean:
@@ -92,4 +90,5 @@ clean:
 
 .PHONY: clobber
 clobber: clean
+	cd mf2tar && cargo clean
 	rm -rf $(OUTPUT)
