@@ -7,9 +7,12 @@ license = "MPL-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies.clap]
-version = "2.33.0"
-default-features = false
+[dependencies]
+percent-encoding = "2"
+digest = "0.8"
+sha-1 = "0.8"
+flate2 = "1"
+getopts = "0.2"
 [dependencies.tar]
 version = "0.4.26"
 default-features = false

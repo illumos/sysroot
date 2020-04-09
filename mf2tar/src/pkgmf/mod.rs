@@ -31,6 +31,8 @@ pub struct Dir {
 pub struct File {
     pub path: String,
     pub attr: FsAttr,
+    pub chash: Option<String>,
+    pub cname: Option<String>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -138,35 +140,39 @@ where
 // file path=lib/$(ARCH64)/c_synonyms.so.1
 // link path=lib/$(ARCH64)/libadm.so target=libadm.so.1
 
-fn parse_file_fields(input: &str) -> (Option<String>, Option<String>, FsAttr) {
+fn parse_file_fields(input: &str) -> (Option<String>, Option<String>, FsAttr, Option<String>, Option<String>) {
+    let mut chash: Option<String> = None;
+    let mut cname: Option<String> = None;
     let mut path: Option<String> = None;
     let mut target: Option<String> = None;
     let mut attrs: FsAttr = Default::default();
 
     // Find all name=value pairs (TODO: handle name="quoted value")
-    let items = input.split(' ').filter_map(|x| {
+    let items = input.split_whitespace().filter_map(|x| {
         if let Some(idx) = x.find('=') {
             let (name, raw_value) = x.split_at(idx);
-            Some((name, &raw_value[1..]))
+            Some((Some(name), &raw_value[1..]))
         } else {
-            None
+            Some((None, x))
         }
     });
 
     for (name, value) in items {
         if let Some(field) = match name {
-            "owner" => Some(&mut attrs.owner),
-            "group" => Some(&mut attrs.group),
-            "mode" => Some(&mut attrs.mode),
-            "path" => Some(&mut path),
-            "target" => Some(&mut target),
+            Some("owner") => Some(&mut attrs.owner),
+            Some("group") => Some(&mut attrs.group),
+            Some("mode") => Some(&mut attrs.mode),
+            Some("path") => Some(&mut path),
+            Some("target") => Some(&mut target),
+            Some("chash") => Some(&mut chash),
+            None => Some(&mut cname),
             _ => None,
         } {
             *field = Some(value.to_string());
         }
     }
 
-    (path, target, attrs)
+    (path, target, attrs, chash, cname)
 }
 
 fn parse_entry(input: &str) -> Entry {
@@ -181,17 +187,17 @@ fn parse_entry(input: &str) -> Entry {
             }
         }
         "dir" => {
-            if let (Some(path), _, attr) = parse_file_fields(rest) {
+            if let (Some(path), _, attr, _, _) = parse_file_fields(rest) {
                 return Entry::Dir(Dir { path, attr });
             }
         }
         "file" => {
-            if let (Some(path), _, attr) = parse_file_fields(rest) {
-                return Entry::File(File { path, attr });
+            if let (Some(path), _, attr, chash, cname) = parse_file_fields(rest) {
+                return Entry::File(File { path, attr, chash, cname, });
             }
         }
         "link" => {
-            if let (Some(path), Some(target), attr) = parse_file_fields(rest) {
+            if let (Some(path), Some(target), attr, _, _) = parse_file_fields(rest) {
                 return Entry::Link(Link { path, attr, target });
             }
         }
