@@ -17,6 +17,11 @@ use pkgmf::Entry;
 mod repo;
 use repo::Repository;
 
+enum Extra {
+    Link(Entry),
+    File(Entry, PathBuf),
+}
+
 enum Source {
     ManifestProto(PathBuf, PathBuf, HashMap<String, String>),
     RepositoryPackages(PathBuf, Vec<String>),
@@ -27,6 +32,7 @@ struct Params {
     tar: PathBuf,
     append: bool,
     excludes: Vec<String>,
+    extra: Vec<Extra>,
 }
 
 fn parse_args() -> Params {
@@ -47,6 +53,10 @@ fn parse_args() -> Params {
         overwriting)");
     opts.optmulti("E", "exclude-path", "exclude manifest object path",
         "EXCLUDE_PATH");
+
+    opts.optmulti("F", "file", "add extra file in archive", "PATH=LOCALFILE");
+    opts.optmulti("L", "link", "add extra symlink in archive",
+        "PATH=LINKTARGET");
 
     opts.optflag("", "help", "print usage information");
 
@@ -125,6 +135,35 @@ fn parse_args() -> Params {
         exit(1);
     };
 
+    let mut extra = Vec::new();
+    for f in res.opt_strs("file") {
+        let t: Vec<_> = f.splitn(2, '=').collect();
+        if t.len() != 2 {
+            usage();
+            println!("ERROR: -F requires NAME=VALUE arguments");
+            exit(1);
+        }
+        extra.push(Extra::File(Entry::File(pkgmf::File {
+            path: t[0].to_string(),
+            attr: pkgmf::FsAttr::default(),
+            chash: None,
+            cname: None,
+        }), PathBuf::from(t[1])));
+    }
+    for l in res.opt_strs("link") {
+        let t: Vec<_> = l.splitn(2, '=').collect();
+        if t.len() != 2 {
+            usage();
+            println!("ERROR: -L requires NAME=VALUE arguments");
+            exit(1);
+        }
+        extra.push(Extra::Link(Entry::Link(pkgmf::Link {
+            path: t[0].to_string(),
+            attr: pkgmf::FsAttr::default(),
+            target: t[1].to_string(),
+        })));
+    }
+
     if res.free.len() != 1 {
         usage();
         println!("ERROR: must specify a single tar file for output");
@@ -140,6 +179,7 @@ fn parse_args() -> Params {
         tar,
         append: res.opt_present("append"),
         excludes,
+        extra,
     }
 }
 
@@ -279,6 +319,8 @@ where
 enum TarFileSource<'a> {
     Proto(&'a PathBuf),
     Repository(&'a Repository),
+    SingleFile(&'a PathBuf),
+    None,
 }
 
 fn append_tar<W: io::Write>(
@@ -308,6 +350,32 @@ fn append_tar<W: io::Write>(
             header.set_mtime(mtime);
 
             match source {
+                TarFileSource::None =>
+                    panic!("should not be None for Entry::File"),
+                TarFileSource::SingleFile(path) => {
+                    let source = match File::open(&path) {
+                        Err(e) => {
+                            return Err(io::Error::new(
+                                e.kind(),
+                                format!("{}: {}", e, &path.to_str().unwrap()),
+                            ));
+                        }
+                        Ok(f) => f,
+                    };
+                    let meta = source.metadata()?;
+
+                    if !meta.file_type().is_file() {
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            format!("{} is not a file", &path.to_str().unwrap()),
+                        ));
+                    }
+                    let source_len = meta.len();
+
+                    header.set_size(source_len);
+                    header.set_cksum();
+                    builder.append(&header, source.take(source_len))?;
+                }
                 TarFileSource::Proto(proto_dir) => {
                     let mut source_path = proto_dir.to_path_buf();
                     source_path.push(&file.path);
@@ -361,12 +429,7 @@ fn append_tar<W: io::Write>(
             header.set_entry_type(EntryType::Symlink);
             header.set_size(0);
             header.set_path(&link.path)?;
-            header.set_mtime(
-                SystemTime::now()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs(),
-            );
+            header.set_mtime(mtime);
             header.set_mode(0o777);
             header.set_link_name(&link.target)?;
             header.set_cksum();
@@ -522,6 +585,26 @@ fn main() {
             tar_builder
         }
     };
+
+    if !params.extra.is_empty() {
+        println!("EXTRA FILES AND LINKS:");
+    }
+    for extra in &params.extra {
+        let res = match extra {
+            Extra::File(entry, file) => {
+                append_tar(&mut tar_builder, &TarFileSource::SingleFile(file),
+                    &entry, mtime)
+            }
+            Extra::Link(entry) => {
+                append_tar(&mut tar_builder, &TarFileSource::None,
+                    &entry, mtime)
+            }
+        };
+        if let Err(e) = res {
+            eprintln!("ERROR: tar: {}", e);
+            exit(111);
+        }
+    }
 
     if let Err(e) = tar_builder.finish() {
         eprintln!("ERROR: tar: {}", e);
