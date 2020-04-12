@@ -18,6 +18,7 @@ MF2TAR =		$(PWD)/mf2tar/target/release/mf2tar
 
 INCLUDE_PACKAGES =	system/header \
 			system/library \
+			system/library/math \
 			system/library/c-runtime
 
 EXCLUDE_DIRS =		usr/share \
