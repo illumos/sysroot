@@ -16,8 +16,8 @@ uploaded [to the GitHub release
 page](https://github.com/illumos/sysroot/releases) for this repository.
 
 Release files will have names of the form:
-`illumos-sysroot-$MACH-$COMMIT-$DATE-$VERSION.tar.gz`.  For example,
-`illumos-sysroot-i386-de6af22ae73b-20181213-v1.tar.gz` would be artefacts for
+`illumos-sysroot-$MACH-$DATE-$COMMIT-$VERSION.tar.gz`.  For example,
+`illumos-sysroot-i386-20181213-de6af22ae73b-v1.tar.gz` would be artefacts for
 x86 machines (32- and 64-bit) built from `illumos-gate` commit
 `de6af22ae73ba8d72672288621ff50b88f2cf5fd` which integrated on 13th
 December, 2018.  The version number (e.g., `v1`) reflects the revision of the
@@ -51,7 +51,7 @@ archive is (hopefully!) as simple as:
 $ gmake archive \
     ILLUMOS_PKGREPO=/ws/oldgate/packages/i386/nightly-nd/repo.redist
 ...
-gzip < output/illumos-sysroot-i386-de6af22ae73b-20181213-v1.tar > output/illumos-sysroot-i386-de6af22ae73b-20181213-v1.tar.gz
+gzip < output/illumos-sysroot-i386-custom-v20200411-224313.tar > output/illumos-sysroot-i386-custom-v20200411-224313.tar.gz
 ```
 
 Note that by default, the archive will be named with a custom version string to
