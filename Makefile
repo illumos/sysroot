@@ -1,26 +1,41 @@
+#
+# Makefile for the generation of illumos sysroot archives.
+#
 
+MACH =			i386
 MACH64 =		amd64
 
 OUTPUT =		output
-TARBASE =		sysroot-illumos-$(MACH64)-
-TARFILE =		$(OUTPUT)/$(TARBASE)$(shell date +%Y%m%d-%H%M%S).tar
+TARBASE =		illumos-sysroot-$(MACH)
+TARVERSION =		custom-v$(shell date +%Y%m%d-%H%M%S)
+TARFILE =		$(OUTPUT)/$(TARBASE)-$(TARVERSION).tar
 
-RSYNC =			rsync
-GNUTAR =		gtar
+#
+# When producing the official archive, override TARVERSION; e.g.
+#	gmake archive TARVERSION=de6af22ae73b-20181213-v1
+#
 
 USRLIB =		usr/lib
 USRLIB64 =		usr/lib/$(MACH64)
 
-SHIMS =			libssp.so.0.0.0 \
-			libgcc_s.so.1
-
 MF2TAR =		$(PWD)/mf2tar/target/release/mf2tar
 
+#
+# A list of IPS packages to include in the sysroot archive.  Note that no
+# dependency resolution is done, so if you need the dependencies for an
+# included package you must enumerate them explicitly here as well.
+#
 INCLUDE_PACKAGES =	system/header \
 			system/library \
 			system/library/math \
 			system/library/c-runtime
 
+#
+# A list of paths to exclude, even if they appear in the packages listed above.
+# This is useful in order to omit files from larger packages that contain
+# things other than just headers and libraries, in order to keep the size of
+# the sysroot archive down.
+#
 EXCLUDE_DIRS =		usr/share \
 			etc \
 			var \
@@ -30,9 +45,14 @@ EXCLUDE_DIRS =		usr/share \
 			sbin \
 			bin
 
-LIBGCC_32 =		shims/libgcc_s/i386/libgcc_s.so.1
+#
+# Shim libraries that we generate for artefacts that come from consolidations
+# other than illumos-gate, but which are expected to appear in /usr/lib in
+# every illumos distribution:
+#
+LIBGCC_32 =		shims/libgcc_s/$(MACH)/libgcc_s.so.1
 LIBGCC_64 =		shims/libgcc_s/$(MACH64)/libgcc_s.so.1
-LIBSSP_32 =		shims/libssp/i386/libssp.so.0.0.0
+LIBSSP_32 =		shims/libssp/$(MACH)/libssp.so.0.0.0
 LIBSSP_64 =		shims/libssp/$(MACH64)/libssp.so.0.0.0
 
 SHIM_TARGETS  =		$(LIBGCC_32) $(LIBGCC_64) $(LIBSSP_32) $(LIBSSP_64)
@@ -80,7 +100,7 @@ archive: $(SHIM_TARGETS) | $(OUTPUT) $(MF2TAR)
 	    --link $(USRLIB64)/libssp.so.0=libssp.so.0.0.0 \
 	    --link $(USRLIB64)/libssp.so=libssp.so.0.0.0 \
 	    \
-	    $(OUTPUT)/$(TARBASE)$(shell date +%Y%m%d-%H%M%S).tar
+	    $(TARFILE)
 	gzip < $(TARFILE) > $(TARFILE).gz
 
 .PHONY: clean
