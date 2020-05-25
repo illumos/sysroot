@@ -168,7 +168,7 @@ gcc)
         # can find them:
         #
         (cd "$PREFIX/bin" && ls -U) | grep "^$ARCH-illumos-" |
-            xargs -t -I% ln -s "$PREFIX/bin/%" '/usr/local/bin/'
+            xargs -t -I% ln -fs "$PREFIX/bin/%" '/usr/local/bin/'
 
         cd /
         rm -rf /ws/src/gcc /ws/build/gcc
