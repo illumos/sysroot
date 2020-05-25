@@ -2,7 +2,6 @@
 
 set -o errexit
 set -o pipefail
-set -o xtrace
 
 ARCH="$1"
 PHASE="$2"
