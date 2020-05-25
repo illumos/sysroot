@@ -6,6 +6,7 @@ set -o xtrace
 
 ARCH="$1"
 PHASE="$2"
+SYSROOT_DIR="$3"
 
 JOBS="$(getconf _NPROCESSORS_ONLN)"
 
@@ -50,7 +51,10 @@ SYSROOT_MD5='23462f7f5297f390803d27c424c32ad6'
 SYSROOT_TAR="illumos-sysroot-$SYSROOT_MACH-$SYSROOT_VER.tar.gz"
 SYSROOT_URL='https://github.com/illumos/sysroot/releases/download/'
 SYSROOT_URL+="$SYSROOT_VER/$SYSROOT_TAR"
-SYSROOT_DIR="$PREFIX/sysroot"
+
+if [[ -z "$SYSROOT_DIR" ]]; then
+        SYSROOT_DIR="$PREFIX/sysroot"
+fi
 
 BINUTILS_VERSION='2.25.1'
 BINUTILS_MD5='ac493a78de4fee895961d025b7905be4'
