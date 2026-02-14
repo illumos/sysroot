@@ -28,7 +28,8 @@ MF2TAR =		$(PWD)/mf2tar/target/release/mf2tar
 INCLUDE_PACKAGES =	system/header \
 			system/library \
 			system/library/math \
-			system/library/c-runtime
+			system/library/c-runtime \
+			system/library/security/gss
 
 #
 # A list of paths to exclude, even if they appear in the packages listed above.
