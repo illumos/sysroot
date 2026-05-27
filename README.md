@@ -112,3 +112,34 @@ we expect in the real thing.  This doesn't matter in practice, as the sysroot
 is for cross compilation; the build machine must not execute program text for
 the target machine.  These shim libraries are created through mapfiles and stub
 code built from this repository.
+
+### Sysroot Release 20210501 Version 0
+
+This sysroot archive was built from the following commit (with a necessary
+backport on top), following the process described by
+[IPD59](https://github.com/illumos/ipd/blob/master/ipd/0059/README.adoc):
+
+```
+commit e0b4275f346eda86b39157cd7dd3cc889a1f6988
+Author: Richard Lowe <richlowe@richlowe.net>
+Date:   Sat May 21 18:13:37 2022 -0500
+
+    backport: 14710 remove long obsolete/unused pyzfs helper script
+    Reviewed by: Yuri Pankov <ypankov@tintri.com>
+    Reviewed by: Andy Fiddaman <andy@omnios.org>
+    Reviewed by: Peter Tribble <peter.tribble@gmail.com>
+    Approved by: Dan McDonald <danmcd@mnx.io>
+
+commit 2ed5ea5a06df7f669d20d88729c625981a0de7bc
+Author: Toomas Soome <tsoome@me.com>
+Date:   Sat Apr 24 15:11:37 2021 +0300
+
+    13761 logadm: variable may be used uninitialized
+    Reviewed by: Andy Fiddaman <andy@omnios.org>
+    Reviewed by: C Fraire <cfraire@me.com>
+    Approved by: Dan McDonald <danmcd@joyent.com>
+```
+
+This sysroot differs from the previous version with the inclusion of `libgss`
+in the illumos base.  The shim libraries for `libssp` and `libgcc_s` are still
+included.
